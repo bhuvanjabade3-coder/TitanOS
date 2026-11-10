@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     require_token: bool = True
+    home: Path = Field(default_factory=Path.home)  # root of user-file operations
+    ai_model: str = "claude-opus-5-5"
+    ai_effort: str = "medium"
+    ai_max_steps: int = 16
+    whisper_bin: str | None = None
+    whisper_model: Path | None = None
+    static_dir: Path | None = None  # built shell (frontend/dist) served at /
     metrics_interval: float = 1.0
     anthropic_api_key: SecretStr | None = Field(
         default=None,

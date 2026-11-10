@@ -29,7 +29,92 @@ MIGRATIONS: list[tuple[int, str]] = [
         CREATE INDEX idx_audit_ts ON audit_log(ts);
         """,
     ),
+    (
+        2,
+        """
+        CREATE TABLE approvals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            created_at TEXT NOT NULL,
+            actor TEXT NOT NULL,
+            action TEXT NOT NULL,
+            params TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            risk TEXT NOT NULL,
+            reasons TEXT NOT NULL,
+            status TEXT NOT NULL,
+            decided_at TEXT,
+            result TEXT
+        );
+        CREATE TABLE tasks (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            status TEXT NOT NULL,
+            progress REAL NOT NULL DEFAULT 0,
+            message TEXT NOT NULL DEFAULT '',
+            result TEXT,
+            error TEXT,
+            created_at TEXT NOT NULL,
+            finished_at TEXT
+        );
+        CREATE TABLE notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts TEXT NOT NULL,
+            category TEXT NOT NULL,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            level TEXT NOT NULL,
+            read INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE memories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kind TEXT NOT NULL,
+            content TEXT NOT NULL,
+            source TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE reminders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT NOT NULL,
+            due_at TEXT NOT NULL,
+            done INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE conversations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        CREATE TABLE messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+            role TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE bookmarks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            url TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE app_usage (
+            app_id TEXT PRIMARY KEY,
+            last_used TEXT NOT NULL,
+            count INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE plugins (
+            id TEXT PRIMARY KEY,
+            enabled INTEGER NOT NULL DEFAULT 0,
+            error TEXT
+        );
+        """,
+    ),
 ]
+
+
+def now() -> str:
+    return _now()
 
 
 def _now() -> str:
@@ -83,6 +168,23 @@ class Database:
                 conn.close()
             current = version
         return current
+
+    # --- generic helpers -------------------------------------------------
+    def q(self, sql: str, params: tuple = ()) -> list[dict[str, Any]]:
+        with self.connect() as conn:
+            return [dict(r) for r in conn.execute(sql, params).fetchall()]
+
+    def x(self, sql: str, params: tuple = ()) -> int:
+        """Execute a write; returns lastrowid for INSERT, else rowcount."""
+        with self.connect() as conn:
+            cur = conn.execute(sql, params)
+            return int(cur.lastrowid) if sql.lstrip().upper().startswith("INSERT") else cur.rowcount
+
+    def pref(self, key: str, default: Any = None) -> Any:
+        try:
+            return self.get_preference(key)
+        except KeyError:
+            return default
 
     # --- preferences -------------------------------------------------------
     def get_preferences(self) -> dict[str, Any]:
