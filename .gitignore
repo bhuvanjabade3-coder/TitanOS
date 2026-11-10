@@ -1,0 +1,33 @@
+# Secrets — never commit
+.env
+*.env
+!.env.example
+scripts/vm.env
+*.pem
+*.key
+
+# Runtime data
+data/
+*.db
+*.db-wal
+*.db-shm
+*.log
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Node / Electron
+node_modules/
+dist/
+out/
+release/
+.vite/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/

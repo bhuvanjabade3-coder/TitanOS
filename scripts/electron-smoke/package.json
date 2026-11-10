@@ -1,0 +1,8 @@
+{
+  "name": "titan-electron-smoke",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Phase 0 check: can Electron open a window on the VM display?",
+  "main": "main.js",
+  "devDependencies": { "electron": "latest" }
+}
