@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Opens the TITAN shell in a chromeless browser window. The API token is passed
+# in the URL fragment, which browsers never send over the network.
+set -euo pipefail
+DATA="${TITAN_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/titan}"
+PORT="${TITAN_PORT:-8710}"
+for _ in $(seq 40); do [ -s "$DATA/api_token" ] && curl -sf "http://127.0.0.1:$PORT/health" >/dev/null && break; sleep 0.25; done
+if [ ! -s "$DATA/api_token" ]; then
+  echo "TITAN Core is not running (no token at $DATA/api_token). Try: systemctl --user start titan-core" >&2; exit 1
+fi
+URL="http://127.0.0.1:$PORT/#token=$(cat "$DATA/api_token")"
+for b in chromium chromium-browser google-chrome brave-browser; do
+  if command -v "$b" >/dev/null; then exec "$b" --app="$URL" --start-fullscreen --user-data-dir="$DATA/shell-profile" --no-first-run; fi
+done
+if command -v firefox >/dev/null; then exec firefox --kiosk --new-instance --profile "$DATA/shell-profile-ff" "$URL" 2>/dev/null || exec firefox --kiosk "$URL"; fi
+echo "No supported browser found (chromium or firefox)." >&2; exit 1

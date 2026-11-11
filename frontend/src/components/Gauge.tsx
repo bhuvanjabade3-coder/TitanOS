@@ -11,7 +11,7 @@ export function Gauge({ label, percent, detail }: { label: string; percent: numb
       <svg viewBox="0 0 100 100" className="h-20 w-20 -rotate-90">
         <defs>
           <linearGradient id="titan-arc" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--color-violet)" />
+            <stop offset="0%" stopColor="var(--color-accent)" />
             <stop offset="100%" stopColor="var(--color-azure)" />
           </linearGradient>
         </defs>

@@ -1,0 +1,8 @@
+{
+  "id": "example_hello",
+  "name": "Hello Example",
+  "version": "1.0.0",
+  "description": "Minimal example plugin: one action and a notification.",
+  "permissions": ["notifications"],
+  "entry": "plugin.py"
+}
