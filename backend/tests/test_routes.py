@@ -71,3 +71,15 @@ def test_shell_is_served_without_secrets(tmp_path):
     assert page.status_code == 200 and app.state.api_token not in page.text
     assert c.get("/assets/app.js").text == "1"
     app.state.core.shutdown()
+
+
+def test_bundled_example_plugin_works(app):
+    import shutil
+    from pathlib import Path
+    core = app.state.core
+    src = Path(__file__).resolve().parents[2] / "plugins" / "example_hello"
+    shutil.copytree(src, core.plugins.dir / "example_hello")
+    core.plugins.enable("example_hello")
+    out = core.registry.perform("user", "plugin.example_hello.greet", {"name": "Bhu"})
+    assert out == {"status": "ok", "result": {"greeting": "Hi Bhu!"}}
+    assert core.notifier.list()[0]["title"] == "Hello from a plugin"
